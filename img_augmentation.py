@@ -2,16 +2,52 @@ import argparse
 import os
 import numpy as np
 from PIL import Image, ImageFilter
+from tensorflow.python.platform import gfile
+
+EXTENSIONS = ['jpg', 'jpeg', 'JPG', 'JPEG']
 
 def init():
     # задаются параметры приложения
     ap = argparse.ArgumentParser()
-    ap.add_argument("-d", "--dir", required=True, help="Директория поиска изображений")
-    ap.add_argument("-a", "--angle", required=False, help="Угол поворота изображения (по-умолчанию: 2 градуса)")
-    ap.add_argument("-s", "--sector", required=False, help="В какой области вращать изображение (по-умолчанию:0-360 = поворот от 0+angle до 360)")
-    ap.add_argument("-n", "--noise", required=False,
-                    help="Добавление шума: 1 - добавлять шум к изображению при вращении; пустая строка "" - не добавлять")
-    ap.add_argument("-r", "--radius", required=False, help="Радиус блюра (по-умолчанию: 5)")
+    ap.add_argument(
+        "-d",
+        "--dir",
+        type=str,
+        required=True,
+        help="Директория поиска изображений"
+    )
+    ap.add_argument(
+        "-a",
+        "--angle",
+        type=int,
+        required=False,
+        default=2,
+        help="Угол поворота изображения (по-умолчанию: 2 градуса)"
+    )
+    ap.add_argument(
+        "-s",
+        "--sector",
+        type=str,
+        required=False,
+        default="0-360",
+        help="В какой области вращать изображение (по-умолчанию:0-360 = поворот от 0+angle до 360)"
+    )
+    ap.add_argument(
+        "-n",
+        "--noise",
+        type=bool,
+        required=False,
+        default="1",
+        help="Добавление шума: 1 - добавлять шум к изображению при вращении; пустая строка "" - не добавлять"
+    )
+    ap.add_argument(
+        "-r",
+        "--radius",
+        type=int,
+        required=False,
+        default="5",
+        help="Радиус блюра (по-умолчанию: 5)"
+    )
     return vars(ap.parse_args())
 
 def get_image_from_path(directory, image_name):
@@ -34,8 +70,6 @@ def get_noise_image(width, height):
     imarray = np.random.rand(height, width, 3) * 255
     im = Image.fromarray(imarray.astype('uint8')).convert('RGBA')
     return im
-
-
 
 # * Растягивание на пределенные значения по оси X и Y
 def stretch_image(input_directory, output_directory, image_name, X):
@@ -112,7 +146,7 @@ if __name__ == "__main__":
     # Фильтрация списка, по расширениям '.jpg' или '.jpeg'
     image_list = list(filter(lambda x: x.endswith('.jpg'), files))
 
-    print("Начало обработки в директории: " + input_directory + ", генерация шума: " + noise)
+    print("Начало обработки в директории: " + input_directory + ", генерация шума: " + str(noise))
     print("Всего к обработке=" + str(len(image_list)))
 
     for image_name in image_list:
