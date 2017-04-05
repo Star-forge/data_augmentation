@@ -12,6 +12,7 @@ IN_DIR = ""
 OUT_DIR_ROOT = ""
 OUT_DIR = ""
 FILES_COUNT = 0
+IMAGE_SIZE = (299, 299)
 
 def init():
     # задаются параметры приложения
@@ -69,6 +70,8 @@ def save_image_to_path(image, output_directory, image_name):
         os.makedirs(output_directory)
     # Получение полного пути к изображению, включающего директорию и имя файла
     image_path = output_directory + image_name
+    # Изменение размера
+    image = image.resize(IMAGE_SIZE, Image.LANCZOS)
     # Запись в файл
     image.save(image_path)
 
@@ -96,6 +99,10 @@ def stretch_image(input_directory, output_directory, image_name, X):
     img_noise = img_noise.paste(mim, coords)
     # im.show()
     img_noise.save("00000.jpg")
+
+# * Сжатие на пределенные значения по оси  X и Y
+
+# * Сдвиг на пределенные значения по оси  X и Y
 
 # * Введение на изображение бликов и линий
 
@@ -146,7 +153,7 @@ def ResizeImg(input_directory, output_directory, im_name, new_im_name=""):
     if(new_im_name==""):
         new_im_name = im_name
     im = get_image_from_path(input_directory, im_name)
-    im_resized = im.resize((299, 299), Image.LANCZOS)
+    im_resized = im.resize(IMAGE_SIZE, Image.LANCZOS)
     # Сохранение результата в файл
     save_image_to_path(im_resized, output_directory, new_im_name)
 
@@ -184,7 +191,7 @@ if __name__ == "__main__":
     OUT_DIR_ROOT = IN_DIR[:-1]  + "_out"
     os.makedirs(OUT_DIR_ROOT,exist_ok=True)
 
-    print("\n***ИЗМЕНЕНИЕ РАЗМЕРА ИЗОБРАЖЕНИЙ ДО 299х299***")
+    print("\n***ИЗМЕНЕНИЕ РАЗМЕРА ИЗОБРАЖЕНИЙ ДО "+str(IMAGE_SIZE)+"***")
     step = 0;
     for image_path in image_list:
         step += 1
@@ -231,7 +238,7 @@ if __name__ == "__main__":
     print("\n***ОБРАБОТКА ЗАВЕРШЕНА***")
     print("Новый датасет находится по пути = " + OUT_DIR_ROOT +
           ". В директории '#R' - повернутые изображения, а в директории '#B' - размытые. "
-          "Все изображения приведены к размеру 299х299 пикселей (с помощью фильтра Ланцоша). "
+          "Все изображения приведены к размеру " +str(IMAGE_SIZE)+ " пикселей (с помощью фильтра Ланцоша). "
           "\nКоличество файлов в первоначальном датасете = " + str(FILES_COUNT) +
           "\nКоличество файлов в итоговом датасете = " + str(len(GetListForAugmentation(OUT_DIR_ROOT))))
     print("\n")
