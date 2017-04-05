@@ -1,11 +1,9 @@
 # coding: utf8
 import argparse
 import os
-from os.path import basename
-
+from os.path import basename, splitext
 import numpy as np
 from PIL import Image, ImageFilter
-from tensorflow.python.platform import gfile
 
 EXTENSIONS = ['jpg', 'jpeg', 'JPG', 'JPEG']
 IMAGE_NAME = ""
@@ -13,6 +11,7 @@ IN_DIR_ROOT = ""
 IN_DIR = ""
 OUT_DIR_ROOT = ""
 OUT_DIR = ""
+FILES_COUNT = 0
 
 def init():
     # задаются параметры приложения
@@ -53,8 +52,8 @@ def init():
         "--radius",
         type=int,
         required=False,
-        default="5",
-        help="Радиус блюра (по-умолчанию: 5)"
+        default="3",
+        help="Радиус блюра (по-умолчанию: 3)"
     )
     return vars(ap.parse_args())
 
@@ -98,17 +97,13 @@ def stretch_image(input_directory, output_directory, image_name, X):
     # im.show()
     img_noise.save("00000.jpg")
 
-# * Сжатие на пределенные значения по оси  X и Y
-
-# * Сдвиг на пределенные значения по оси  X и Y
-
 # * Введение на изображение бликов и линий
 
 # * Блюр(дефокус) изображений (Размытие по Гауссу с радиусом (radius))
 def blur_image(input_directory, output_directory, im_name, radius):
     im = get_image_from_path(input_directory, im_name)
     # новое имя файла в директории для результатов = изначальное-имя_rotated_угол-вращения.изначальное-расширение
-    blurred_image_name = im_name[:im_name.rindex('.')] + "_blured" + im_name[im_name.rindex('.'):]
+    blurred_image_name = im_name[:im_name.rindex('.')] + "_b" + splitext(im_name)[1]
     blurred_image = im.filter(ImageFilter.GaussianBlur(radius=int(radius)))
     save_image_to_path(blurred_image, output_directory, blurred_image_name)
 
@@ -128,9 +123,9 @@ def rotate_image(input_directory, output_directory, im_name, angle, sector, nois
             img_noise = get_noise_image(im_rotated.width, im_rotated.height)
             # Слияние изображений
             im_rotated = Image.composite(im_rotated, img_noise, im_rotated)
-            filled = "_filled"
+            filled = "f"
         # новое имя файла в директории для результатов = изначальное-имя_rotated_угол-вращения.изначальное-расширение
-        rotated_image_name = im_name[:im_name.rindex('.')] + "_rotated_" + k.__str__().zfill(3) + filled + im_name[im_name.rindex('.'):]
+        rotated_image_name = im_name[:im_name.rindex('.')] + "_r" + k.__str__().zfill(3) + filled + splitext(im_name)[1]
         # Сохранение результата в файл
         save_image_to_path(im_rotated, output_directory, rotated_image_name)
 
@@ -140,61 +135,78 @@ def GetListForAugmentation(ImagePath):
     for file in os.listdir(ImagePath):
         path = os.path.join(ImagePath, file)
         if not os.path.isdir(path):
-            ImageList.append(path)
+            if (path.endswith(tuple(EXTENSIONS))):
+                ImageList.append(path)
         else:
             ImageList += GetListForAugmentation(path)
     return ImageList
 
 # входная точка приложения
-def ResizeImg(input_directory, output_directory, im_name):
+def ResizeImg(input_directory, output_directory, im_name, new_im_name=""):
+    if(new_im_name==""):
+        new_im_name = im_name
     im = get_image_from_path(input_directory, im_name)
     im_resized = im.resize((299, 299), Image.LANCZOS)
     # Сохранение результата в файл
-    save_image_to_path(im_resized, output_directory, im_name)
+    save_image_to_path(im_resized, output_directory, new_im_name)
 
 def print_step_number(step, steps):
-    print("\rStep " +step+ " from " + steps, end="")
+    print("\rШаг " +str(step)+ " из " + str(steps), end="")
+    if(step == steps):
+        print("\nЗавершено")
 
 if __name__ == "__main__":
+    print("\n***АНАЛИЗ ПАРАМЕТРОВ***")
     args = init()
     # получение значения параметра "Директория поиска изображений"
     input_directory = args["dir"]
     # получение значения параметра "Угол поворота"
-    angle = args["angle"] or 2
+    angle = args["angle"]
     # получение значения параметра "Границы сектора"
-    sector = args["sector"] or "0-360"
+    sector = args["sector"]
     # получение значения параметра "Добавление шума"
-    noise = args["noise"] or "1"
+    noise = args["noise"]
     # получение значения параметра "Радиус размытия"
-    radius = args["radius"] or 5
+    radius = args["radius"]
+    print("Директория поиска изображений:\t" + str(input_directory) +
+          "\nУгол поворота:   \t\t" + str(angle) +
+          "\nГраницы сектора: \t\t" + str(sector) +
+          "\nГенерация шума:  \t\t" + str(noise) +
+          "\nРадиус размытия: \t\t" + str(radius))
 
+    print("\n***ПОИСК ФАЙЛОВ***")
     image_list = GetListForAugmentation(input_directory)
-    print("\nВсего к обработке=" + str(len(image_list)))
+    FILES_COUNT = len(image_list)
+    print("Обнаружено файлов = " + str(FILES_COUNT))
     if(input_directory.endswith(os.sep)): IN_DIR = input_directory
     else: IN_DIR = input_directory + os.sep
     IN_DIR_ROOT = IN_DIR
     OUT_DIR_ROOT = IN_DIR[:-1]  + "_out"
     os.makedirs(OUT_DIR_ROOT,exist_ok=True)
 
+    print("\n***ИЗМЕНЕНИЕ РАЗМЕРА ИЗОБРАЖЕНИЙ ДО 299х299***")
     step = 0;
     for image_path in image_list:
+        step += 1
         IN_DIR, IMAGE_NAME = os.path.split(image_path)
         IN_DIR += os.sep
         OUT_DIR = OUT_DIR_ROOT + os.sep + IN_DIR[len(IN_DIR_ROOT):]
+        # new_image_name = ((str(step).zfill(len(str(len(image_list))))) + splitext(IMAGE_NAME)[1])
         ResizeImg(IN_DIR, OUT_DIR, IMAGE_NAME)
-        step+=1
-        print_step_number(str(step), str(len(image_list)))
+        print_step_number(step, len(image_list))
 
+    print("\n***ПОДГОТОВКА К ОБРАБОТКЕ ИЗОБРАЖЕНИЙ***")
     input_directory = OUT_DIR_ROOT
     image_list = GetListForAugmentation(input_directory)
-    print("\nВсего к обработке=" + str(len(image_list)))
+    print("Всего к обработке = " + str(len(image_list)))
     if (input_directory.endswith(os.sep)):
         IN_DIR = input_directory
     else:
         IN_DIR = input_directory + os.sep
     IN_DIR_ROOT = IN_DIR
 
-    print("\nНачало обработки в директории: " + IN_DIR + ", генерация шума: " + str(noise))
+    print("\n***ОБРАБОТКА ИЗОБРАЖЕНИЙ***")
+    print("Начало обработки в директории: " + IN_DIR + ", генерация шума: " + str(noise))
 
     step = 0;
     for image_path in image_list:
@@ -202,31 +214,24 @@ if __name__ == "__main__":
         IN_DIR, IMAGE_NAME = os.path.split(image_path)
         IN_DIR += os.sep
 
-        # Директория для результатов rotate
+        # Директория для результатов Вращения
         OUT_DIR = OUT_DIR_ROOT + os.sep + "#R" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
-        print(str(step).zfill(len(str(len(image_list)))) + " Rotate:\t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
+        print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(len(image_list)) + "] Rotate:\t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
         # Вращение изображения
         rotate_image(IN_DIR, OUT_DIR, IMAGE_NAME, angle, sector, noise)
 
-        # Директория для результатов blur
+        # Директория для результатов Дефокуса
         OUT_DIR = OUT_DIR_ROOT + os.sep + "#B" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
-        print(str(step).zfill(len(str(len(image_list)))) + " Blur:\t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
+        print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(len(image_list)) + "] Blur:   \t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
         # Дефокус (размытие)
         blur_image(IN_DIR, OUT_DIR, IMAGE_NAME, radius)
 
         # stretch_image(input_directory, output_directory, basename(image_name), 100)
-    '''
-    # Директория для результатов
-    output_directory2 = input_directory + os.sep + "out" + os.sep + "blured" + os.sep
-    input_directory = OUT_DIR[:-1]
-    # Получение списка файлов в переменную files
-    files = os.listdir(input_directory)
-    # Фильтрация списка, по расширениям '.jpg' или '.jpeg'
-    image_list = list(filter(lambda x: x.endswith('.jpg'), files))
 
-    print("Начало обработки в директории: " + input_directory + ", генерация шума: " + noise)
-    print("Всего к обработке=" + str(len(image_list)))
-
-    for IMAGE_NAME in image_list:
-        blur_image(input_directory, output_directory2, basename(IMAGE_NAME), radius)
-    '''
+    print("\n***ОБРАБОТКА ЗАВЕРШЕНА***")
+    print("Новый датасет находится по пути = " + OUT_DIR_ROOT +
+          ". В директории '#R' - повернутые изображения, а в директории '#B' - размытые. "
+          "Все изображения приведены к размеру 299х299 пикселей (с помощью фильтра Ланцоша). "
+          "\nКоличество файлов в первоначальном датасете = " + str(FILES_COUNT) +
+          "\nКоличество файлов в итоговом датасете = " + str(len(GetListForAugmentation(OUT_DIR_ROOT))))
+    print("\n")
