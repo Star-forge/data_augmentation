@@ -24,6 +24,6 @@ image augmentation for NN on python
   
 Например, python img_augmentation.py -d /home/username/dataset_name/
   
-  
-  
+## Результат  
+Если запускать с параметрами по-умолчанию, то получится примерно N*180+N изображений, где N - количество изображений в первоначальном датасете.  
   
