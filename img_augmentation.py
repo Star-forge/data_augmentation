@@ -1,9 +1,10 @@
 # coding: utf8
 import argparse
 import os
+import random
 from os.path import basename, splitext
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw
 
 EXTENSIONS = ['jpg', 'jpeg', 'JPG', 'JPEG']
 IMAGE_NAME = ""
@@ -56,6 +57,14 @@ def init():
         default="3",
         help="Радиус блюра (по-умолчанию: 3)"
     )
+    ap.add_argument(
+        "-l",
+        "--lines",
+        type=int,
+        required=False,
+        default="3",
+        help="Количество линий (по-умолчанию: 3)"
+    )
     return vars(ap.parse_args())
 
 def get_image_from_path(in_dir, image_name):
@@ -105,6 +114,16 @@ def stretch_image(input_directory, output_directory, image_name, X):
 # * Сдвиг на пределенные значения по оси  X и Y
 
 # * Введение на изображение бликов и линий
+def addLines(input_directory, output_directory, im_name, lines_num):
+    im = get_image_from_path(input_directory, im_name)
+    # новое имя файла в директории для результатов = изначальное-имя_rotated_угол-вращения.изначальное-расширение
+    draw = ImageDraw.Draw(im)
+    img_x, img_y = im.size
+    for i in range(0,lines_num):
+        line_image_name = im_name[:im_name.rindex('.')] + "_l" + str(i) + splitext(im_name)[1]
+        draw.line((random.randint(0, img_x), random.randint(0, img_y), random.randint(0, img_x), random.randint(0, img_y)), fill=128, width=10)
+        save_image_to_path(im, output_directory, line_image_name)
+
 
 # * Блюр(дефокус) изображений (Размытие по Гауссу с радиусом (radius))
 def blur_image(input_directory, output_directory, im_name, radius):
@@ -175,11 +194,18 @@ if __name__ == "__main__":
     noise = args["noise"]
     # получение значения параметра "Радиус размытия"
     radius = args["radius"]
+    # получение значения параметра "Количество линий"
+    lines_num = args["lines"]
+
+    if (radius > 3 | radius <= 0): radius = 3
+    if (lines_num > 3 | lines_num <= 0): lines_num = 3
+
     print("Директория поиска изображений:\t" + str(input_directory) +
           "\nУгол поворота:   \t\t" + str(angle) +
           "\nГраницы сектора: \t\t" + str(sector) +
           "\nГенерация шума:  \t\t" + str(noise) +
-          "\nРадиус размытия: \t\t" + str(radius))
+          "\nРадиус размытия: \t\t" + str(radius) +
+          "\nКоличество линий:\t\t" + str(lines_num))
 
     print("\n***ПОИСК ФАЙЛОВ***")
     image_list = GetListForAugmentation(input_directory)
@@ -221,23 +247,30 @@ if __name__ == "__main__":
         IN_DIR, IMAGE_NAME = os.path.split(image_path)
         IN_DIR += os.sep
 
-        # Директория для результатов Вращения
+        # Директория для результатов вращения
         OUT_DIR = OUT_DIR_ROOT + os.sep + "#R" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
         print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(len(image_list)) + "] Rotate:\t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
         # Вращение изображения
         rotate_image(IN_DIR, OUT_DIR, IMAGE_NAME, angle, sector, noise)
 
-        # Директория для результатов Дефокуса
+        # Директория для результатов внесения дефокуса
         OUT_DIR = OUT_DIR_ROOT + os.sep + "#B" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
         print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(len(image_list)) + "] Blur:   \t" + IN_DIR +"\t"+ IMAGE_NAME +"\t"+ OUT_DIR)
         # Дефокус (размытие)
         blur_image(IN_DIR, OUT_DIR, IMAGE_NAME, radius)
 
+        # Директория для результатов рисования линий
+        OUT_DIR = OUT_DIR_ROOT + os.sep + "#L" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
+        print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(
+            len(image_list)) + "] Lines:   \t" + IN_DIR + "\t" + IMAGE_NAME + "\t" + OUT_DIR)
+        # Линии
+        addLines(IN_DIR, OUT_DIR, IMAGE_NAME, lines_num)
+
         # stretch_image(input_directory, output_directory, basename(image_name), 100)
 
     print("\n***ОБРАБОТКА ЗАВЕРШЕНА***")
     print("Новый датасет находится по пути = " + OUT_DIR_ROOT +
-          ". В директории '#R' - повернутые изображения, а в директории '#B' - размытые. "
+          ". В директории '#R' - повернутые изображения, в директории '#B' - размытые, а в директории '#L' - с линиями."
           "Все изображения приведены к размеру " +str(IMAGE_SIZE)+ " пикселей (с помощью фильтра Ланцоша). "
           "\nКоличество файлов в первоначальном датасете = " + str(FILES_COUNT) +
           "\nКоличество файлов в итоговом датасете = " + str(len(GetListForAugmentation(OUT_DIR_ROOT))))
