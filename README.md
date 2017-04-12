@@ -1,5 +1,5 @@
-# image_augmentation
-image augmentation for NN on python
+# data_augmentation
+data (images) augmentation for NN on python
 
 Программа осуществляет аугментацияю изображений.
 В процессе возможно:
