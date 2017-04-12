@@ -359,7 +359,7 @@ if __name__ == "__main__":
         # Директория для результатов рисования бликов
         OUT_DIR = OUT_DIR_ROOT + os.sep + "#G" + os.sep + IN_DIR[len(IN_DIR_ROOT):]
         print("[" + str(step).zfill(len(str(len(image_list)))) + "/" + str(
-            len(image_list)) + "] Lines:   \t" + IN_DIR + "\t" + IMAGE_NAME + "\t" + OUT_DIR)
+            len(image_list)) + "] Glare:   \t" + IN_DIR + "\t" + IMAGE_NAME + "\t" + OUT_DIR)
         # Блики
         addGlare(IN_DIR, OUT_DIR, IMAGE_NAME, glare_num)
 
