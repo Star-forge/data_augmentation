@@ -1,0 +1,80 @@
+run_inference_on_image
+/home/starforge/DS/test/test/1.jpg
+5=====================================
+b'glass bottle\n' (score = 0.87755)
+b'foil\n' (score = 0.05923)
+b'stupid photo\n' (score = 0.04174)
+b'disposable paper cups\n' (score = 0.00807)
+b'plastic bottle\n' (score = 0.00737)
+run_inference_on_image
+/home/starforge/DS/test/test/3.jpg
+5=====================================
+b'plastic bottle\n' (score = 0.77967)
+b'glass bottle\n' (score = 0.21409)
+b'stupid photo\n' (score = 0.00331)
+b'foil\n' (score = 0.00171)
+b'crumpled paper\n' (score = 0.00049)
+run_inference_on_image
+/home/starforge/DS/test/test/9.jpg
+5=====================================
+b'stupid photo\n' (score = 0.51856)
+b'foil\n' (score = 0.42979)
+b'crumpled paper\n' (score = 0.02426)
+b'plastic bottle\n' (score = 0.01284)
+b'disposable paper cups\n' (score = 0.01162)
+run_inference_on_image
+/home/starforge/DS/test/test/4.jpg
+5=====================================
+b'plastic bottle\n' (score = 0.99355)
+b'glass bottle\n' (score = 0.00590)
+b'stupid photo\n' (score = 0.00028)
+b'foil\n' (score = 0.00019)
+b'disposable paper cups\n' (score = 0.00005)
+run_inference_on_image
+/home/starforge/DS/test/test/2.jpg
+5=====================================
+b'disposable paper cups\n' (score = 0.99879)
+b'plastic bottle\n' (score = 0.00043)
+b'glass bottle\n' (score = 0.00027)
+b'crumpled paper\n' (score = 0.00023)
+b'foil\n' (score = 0.00018)
+run_inference_on_image
+/home/starforge/DS/test/test/10.jpg
+5=====================================
+b'crumpled paper\n' (score = 0.99326)
+b'foil\n' (score = 0.00571)
+b'disposable paper cups\n' (score = 0.00033)
+b'receipt\n' (score = 0.00027)
+b'stupid photo\n' (score = 0.00024)
+run_inference_on_image
+/home/starforge/DS/test/test/8.jpg
+5=====================================
+b'foil\n' (score = 0.53961)
+b'disposable paper cups\n' (score = 0.22966)
+b'plastic bottle\n' (score = 0.13202)
+b'crumpled paper\n' (score = 0.05226)
+b'stupid photo\n' (score = 0.03180)
+run_inference_on_image
+/home/starforge/DS/test/test/6.jpg
+5=====================================
+b'glass bottle\n' (score = 0.99616)
+b'plastic bottle\n' (score = 0.00350)
+b'stupid photo\n' (score = 0.00025)
+b'disposable paper cups\n' (score = 0.00004)
+b'foil\n' (score = 0.00002)
+run_inference_on_image
+/home/starforge/DS/test/test/5.jpg
+5=====================================
+b'plastic bottle\n' (score = 0.99461)
+b'glass bottle\n' (score = 0.00392)
+b'stupid photo\n' (score = 0.00073)
+b'disposable paper cups\n' (score = 0.00031)
+b'foil\n' (score = 0.00029)
+run_inference_on_image
+/home/starforge/DS/test/test/7.jpg
+5=====================================
+b'glass bottle\n' (score = 0.59916)
+b'plastic bottle\n' (score = 0.39467)
+b'stupid photo\n' (score = 0.00460)
+b'crumpled paper\n' (score = 0.00057)
+b'foil\n' (score = 0.00045)
